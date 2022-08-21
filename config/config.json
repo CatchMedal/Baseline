@@ -1,0 +1,13 @@
+{
+  "Data": {
+    "bs": 6,
+    "num_folds": 4,
+    "SEED": 2022,
+    "NUM_WORKERS": 4
+  },
+  "path": {
+    "tile_image_path": "../HPA_Baseline/dataset/tiled_HPA_Hubmap_dataset/tiled_images",
+    "tile_mask_path": "../HPA_Baseline/dataset/tiled_HPA_Hubmap_dataset/tiled_masks",
+    "LABELS": "../HPA_Baseline/dataset/HPA_Hubmap_dataset/train.csv"
+  }
+}
