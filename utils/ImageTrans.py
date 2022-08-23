@@ -10,13 +10,11 @@ def img2tensor(img, dtype:np.dtype=np.float32):
     return torch.from_numpy(img.astype(dtype, copy=False))
 
 def transform_module(mean, std):
-    trans = transforms.Compose(
-        [transforms.ToTensor(),
-         transforms.Normalize(mean, std),
+    return A.Compose(
+        [A.Normalize(mean, std),
          A.HorizontalFlip(p=0.5),
          ]
     )
-    return trans
 
 def save_img(data, name, out):
     data = data.float().cpu().numpy()

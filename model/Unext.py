@@ -135,14 +135,3 @@ class UneXt50(nn.Module):
         x = F.interpolate(x, scale_factor=2, mode='bilinear')
         return x
 
-
-# split the model to encoder and decoder for fast.ai
-    def split_layer(self):
-        split_layers = lambda m: [list(m.enc0.parameters()) + list(m.enc1.parameters()) +
-                                  list(m.enc2.parameters()) + list(m.enc3.parameters()) +
-                                  list(m.enc4.parameters()),
-                                  list(m.aspp.parameters()) + list(m.dec4.parameters()) +
-                                  list(m.dec3.parameters()) + list(m.dec2.parameters()) +
-                                  list(m.dec1.parameters()) + list(m.fpn.parameters()) +
-                                  list(m.final_conv.parameters())]
-        return split_layers

@@ -47,7 +47,10 @@ class HPADataset(Dataset):
         fname = self.fnames[idx]
         img = cv2.cvtColor(cv2.imread(os.path.join(self.image_path, fname)), cv2.COLOR_BGR2RGB)
         mask = cv2.imread(os.path.join(self.mask_path, fname), cv2.IMREAD_GRAYSCALE)
-        dataset = (img, mask)
+        dataset = (img2tensor(img), img2tensor(mask))
         if self.transform is not None:
-            dataset = self.transform(dataset)
+            transforms_dataset = self.transform(image=img, mask=mask)
+            transforms_image = transforms_dataset['image']
+            transforms_mask = transforms_dataset['mask']
+            dataset = (img2tensor(transforms_image), img2tensor(transforms_mask))
         return dataset
