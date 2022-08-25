@@ -12,9 +12,9 @@ from fastai.learner import Metric
 from fastai.torch_core import flatten_check
 
 try:
-    from itertools import  ifilterfalse
-except ImportError: # py3k
-    from itertools import  filterfalse
+    from itertools import ifilterfalse
+except ImportError:  # py3k
+    from itertools import filterfalse
 
 
 def lovasz_grad(gt_sorted):
@@ -27,7 +27,7 @@ def lovasz_grad(gt_sorted):
     intersection = gts - gt_sorted.float().cumsum(0)
     union = gts + (1 - gt_sorted).float().cumsum(0)
     jaccard = 1. - intersection / union
-    if p > 1: # cover 1-pixel case
+    if p > 1:  # cover 1-pixel case
         jaccard[1:p] = jaccard[1:p] - jaccard[0:-1]
     return jaccard
 
@@ -48,7 +48,7 @@ def iou_binary(preds, labels, EMPTY=1., ignore=None, per_image=True):
         else:
             iou = float(intersection) / union
         ious.append(iou)
-    iou = f_mean(ious)    # mean accross images if per_image
+    iou = f_mean(ious)  # mean accross images if per_image
     return 100 * iou
 
 
@@ -62,7 +62,7 @@ def iou(preds, labels, C, EMPTY=1., ignore=None, per_image=False):
     for pred, label in zip(preds, labels):
         iou = []
         for i in range(C):
-            if i != ignore: # The ignored label is sometimes among predicted classes (ENet - CityScapes)
+            if i != ignore:  # The ignored label is sometimes among predicted classes (ENet - CityScapes)
                 intersection = ((label == i) & (pred == i)).sum()
                 union = ((label == i) | ((pred == i) & (label != ignore))).sum()
                 if not union:
@@ -70,7 +70,7 @@ def iou(preds, labels, C, EMPTY=1., ignore=None, per_image=False):
                 else:
                     iou.append(float(intersection) / union)
         ious.append(iou)
-    ious = map(f_mean, zip(*ious)) # mean accross images if per_image
+    ious = map(f_mean, zip(*ious))  # mean accross images if per_image
     return 100 * np.array(ious)
 
 
@@ -87,7 +87,7 @@ def lovasz_hinge(logits, labels, per_image=True, ignore=None):
     """
     if per_image:
         loss = f_mean(lovasz_hinge_flat(*flatten_binary_scores(log.unsqueeze(0), lab.unsqueeze(0), ignore))
-                          for log, lab in zip(logits, labels))
+                      for log, lab in zip(logits, labels))
     else:
         loss = lovasz_hinge_flat(*flatten_binary_scores(logits, labels, ignore))
     return loss
@@ -109,8 +109,8 @@ def lovasz_hinge_flat(logits, labels):
     perm = perm.data
     gt_sorted = labels[perm]
     grad = lovasz_grad(gt_sorted)
-    #loss = torch.dot(F.relu(errors_sorted), Variable(grad))
-    loss = torch.dot(F.elu(errors_sorted)+1, Variable(grad))
+    # loss = torch.dot(F.relu(errors_sorted), Variable(grad))
+    loss = torch.dot(F.elu(errors_sorted) + 1, Variable(grad))
     return loss
 
 
@@ -131,11 +131,12 @@ def flatten_binary_scores(scores, labels, ignore=None):
 
 class StableBCELoss(torch.nn.modules.Module):
     def __init__(self):
-         super(StableBCELoss, self).__init__()
+        super(StableBCELoss, self).__init__()
+
     def forward(self, input, target):
-         neg_abs = - input.abs()
-         loss = input.clamp(min=0) - input * target + (1 + neg_abs.exp()).log()
-         return loss.mean()
+        neg_abs = - input.abs()
+        loss = input.clamp(min=0) - input * target + (1 + neg_abs.exp()).log()
+        return loss.mean()
 
 
 def binary_xloss(logits, labels, ignore=None):
@@ -163,8 +164,9 @@ def lovasz_softmax(probas, labels, only_present=False, per_image=False, ignore=N
       ignore: void class labels
     """
     if per_image:
-        loss = f_mean(lovasz_softmax_flat(*flatten_probas(prob.unsqueeze(0), lab.unsqueeze(0), ignore), only_present=only_present)
-                          for prob, lab in zip(probas, labels))
+        loss = f_mean(
+            lovasz_softmax_flat(*flatten_probas(prob.unsqueeze(0), lab.unsqueeze(0), ignore), only_present=only_present)
+            for prob, lab in zip(probas, labels))
     else:
         loss = lovasz_softmax_flat(*flatten_probas(probas, labels, ignore), only_present=only_present)
     return loss
@@ -180,7 +182,7 @@ def lovasz_softmax_flat(probas, labels, only_present=False):
     C = probas.size(1)
     losses = []
     for c in range(C):
-        fg = (labels == c).float() # foreground for class c
+        fg = (labels == c).float()  # foreground for class c
         if only_present and fg.sum() == 0:
             continue
         errors = (Variable(fg) - probas[:, c]).abs()
@@ -204,6 +206,7 @@ def flatten_probas(probas, labels, ignore=None):
     vprobas = probas[valid.nonzero().squeeze()]
     vlabels = labels[valid]
     return vprobas, vlabels
+
 
 def xloss(logits, labels, ignore=None):
     """
@@ -234,8 +237,9 @@ def f_mean(l, ignore_nan=False, empty=0):
         return acc
     return acc / n
 
+
 def symmetric_lovasz(outputs, targets):
-    return 0.5*(lovasz_hinge(outputs, targets) + lovasz_hinge(-outputs, 1.0 - targets))
+    return 0.5 * (lovasz_hinge(outputs, targets) + lovasz_hinge(-outputs, 1.0 - targets))
 
 
 class Dice_soft(Metric):
@@ -277,6 +281,7 @@ class Dice_th_pred(Metric):
         dices = torch.where(self.union > 0.0, 2.0 * self.inter / self.union,
                             torch.zeros_like(self.union))
 
+
 # dice with automatic threshold selection
 class Dice_th(Metric):
     def __init__(self, ths=np.arange(0.1, 0.9, 0.05), axis=1):
@@ -298,3 +303,4 @@ class Dice_th(Metric):
     def value(self):
         dices = torch.where(self.union > 0.0,
                             2.0 * self.inter / self.union, torch.zeros_like(self.union))
+        return dices.max()

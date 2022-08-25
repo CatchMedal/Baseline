@@ -9,9 +9,9 @@ def img2tensor(img, dtype:np.dtype=np.float32):
     img = np.transpose(img, (2, 0, 1))
     return torch.from_numpy(img.astype(dtype, copy=False))
 
-def transform_module(mean, std):
+def transform_module():
     return A.Compose(
-        [A.Normalize(mean, std),
+        [
          A.HorizontalFlip(p=0.5),
          ]
     )

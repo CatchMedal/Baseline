@@ -17,7 +17,8 @@ SEED = config["Data"]["SEED"]
 Labels = config["path"]["LABELS"]
 image_path = config["path"]["tile_image_path"]
 mask_path = config["path"]["tile_mask_path"]
-
+mean = np.array(config["Data"]["mean"])
+std = np.array(config["Data"]["std"])
 
 class HPADataset(Dataset):
     def __init__(self, fold, train, transform=None):
@@ -47,10 +48,8 @@ class HPADataset(Dataset):
         fname = self.fnames[idx]
         img = cv2.cvtColor(cv2.imread(os.path.join(self.image_path, fname)), cv2.COLOR_BGR2RGB)
         mask = cv2.imread(os.path.join(self.mask_path, fname), cv2.IMREAD_GRAYSCALE)
-        dataset = (img2tensor(img), img2tensor(mask))
         if self.transform is not None:
             transforms_dataset = self.transform(image=img, mask=mask)
-            transforms_image = transforms_dataset['image']
-            transforms_mask = transforms_dataset['mask']
-            dataset = (img2tensor(transforms_image), img2tensor(transforms_mask))
-        return dataset
+            img = transforms_dataset['image']
+            mask = transforms_dataset['mask']
+        return img2tensor((img/255.0 - mean)/std), img2tensor(mask)
